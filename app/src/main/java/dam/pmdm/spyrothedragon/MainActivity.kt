@@ -1,5 +1,7 @@
 package dam.pmdm.spyrothedragon
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -59,6 +61,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         bindingGuide.buttonComenzar.setOnClickListener {
+
             binding.includeLayoutGuide.root.visibility=View.GONE
             binding.includeLayoutGuideStep.root.visibility=View.VISIBLE
             step1()
@@ -99,8 +102,29 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
     private fun step1(){
+        val posXNav=binding.navView.width/3
+        val posYNav=binding.root.height-350
+
+
         bindingGuideStep.circuloSelector.animate()
-            .x((-500.0).toFloat())
+            .x(-posXNav.toFloat())
+            .y(posYNav.toFloat())
+            .withEndAction { binding.includeLayoutGuideStep.circuloSelector.animate()
+                .alpha(1f)}
             .start()
+         val scaleX= ObjectAnimator.ofFloat(binding.includeLayoutGuideStep.circuloSelector,View.SCALE_X,1f,1.1f,1f)
+        val scaleY= ObjectAnimator.ofFloat(binding.includeLayoutGuideStep.circuloSelector,View.SCALE_Y,1f,1.1f,1f)
+        scaleX.setDuration(800)
+        scaleY.setDuration(800)
+        scaleX.repeatCount= 3
+        scaleY.repeatCount=3
+        scaleX.start()
+        scaleY.start()
+
+
+
+
+
+
     }
 }
