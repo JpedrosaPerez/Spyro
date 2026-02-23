@@ -3,6 +3,7 @@ package dam.pmdm.spyrothedragon
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -10,10 +11,14 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import dam.pmdm.spyrothedragon.databinding.ActivityMainBinding
+import dam.pmdm.spyrothedragon.databinding.GuideBinding
+import dam.pmdm.spyrothedragon.databinding.GuideStepBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var bindingGuide: GuideBinding
+    private lateinit var bindingGuideStep: GuideStepBinding
     private var navController: NavController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,6 +26,10 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        bindingGuide= GuideBinding.bind(binding.includeLayoutGuide.root)
+        bindingGuideStep= GuideStepBinding.bind(binding.includeLayoutGuideStep.root)
+        binding.includeLayoutGuide.root.visibility=View.VISIBLE
+        binding.includeLayoutGuideStep.root.visibility=View.GONE
 
         val navHostFragment: Fragment? =
             supportFragmentManager.findFragmentById(R.id.navHostFragment)
@@ -48,6 +57,11 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                 }
             }
+        }
+        bindingGuide.buttonComenzar.setOnClickListener {
+            binding.includeLayoutGuide.root.visibility=View.GONE
+            binding.includeLayoutGuideStep.root.visibility=View.VISIBLE
+            step1()
         }
     }
 
@@ -83,5 +97,10 @@ class MainActivity : AppCompatActivity() {
             .setMessage(R.string.text_about)
             .setPositiveButton(R.string.accept, null)
             .show()
+    }
+    private fun step1(){
+        bindingGuideStep.circuloSelector.animate()
+            .x((-500.0).toFloat())
+            .start()
     }
 }
