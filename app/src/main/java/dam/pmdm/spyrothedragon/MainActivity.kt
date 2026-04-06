@@ -208,8 +208,6 @@ class MainActivity : AppCompatActivity() {
             fadeOutCirculo.start()
             step3()
         }
-
-
     }
 
     private fun step3() {
