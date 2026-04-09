@@ -42,4 +42,7 @@
         android:id="@+id/includeLayoutGuideStep"
         layout="@layout/guide_step"
         />
+    <include
+        android:id="@+id/includeLayoutResumen"
+        layout="@layout/resumen_guia"/>
 </FrameLayout>

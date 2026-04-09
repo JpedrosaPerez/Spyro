@@ -1,6 +1,7 @@
 package dam.pmdm.spyrothedragon
 
 import android.animation.ObjectAnimator
+import android.media.SoundPool
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -14,14 +15,25 @@ import androidx.navigation.ui.NavigationUI
 import dam.pmdm.spyrothedragon.databinding.ActivityMainBinding
 import dam.pmdm.spyrothedragon.databinding.GuideBinding
 import dam.pmdm.spyrothedragon.databinding.GuideStepBinding
+import dam.pmdm.spyrothedragon.databinding.ResumenGuiaBinding
+import android.widget.ImageView
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var bindingGuide: GuideBinding
     private lateinit var bindingGuideStep: GuideStepBinding
+    private lateinit var bindingResumen: ResumenGuiaBinding
+    private lateinit var soundPool: SoundPool
+    private var sonidoClick: Int = 0
+
     private var navController: NavController? = null
-    private var pasoActual = 0
+    private var personajesVisto:Boolean=false
+    private var mundosVisto:Boolean= false
+    private var coleccionesVisto:Boolean=false
+    private var infoVisto:Boolean=false
+    private var guiaVista:Boolean=false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,8 +41,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         bindingGuide = GuideBinding.bind(binding.includeLayoutGuide.root)
         bindingGuideStep = GuideStepBinding.bind(binding.includeLayoutGuideStep.root)
+        bindingResumen= ResumenGuiaBinding.bind(binding.includeLayoutResumen.root)
+        binding.includeLayoutResumen.root.visibility=View.GONE
         binding.includeLayoutGuide.root.visibility = View.VISIBLE
         binding.includeLayoutGuideStep.root.visibility = View.GONE
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(5)
+            .build()
+        sonidoClick = soundPool.load(this, R.raw.pop, 1)
 
         val navHostFragment: Fragment? =
             supportFragmentManager.findFragmentById(R.id.navHostFragment)
@@ -59,6 +78,9 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                 }
             }
+        }
+        bindingGuide.saltarGuiaStart.setOnClickListener {
+            resumenGuia()
         }
         bindingGuide.buttonComenzar.setOnClickListener {
             startGuide()
@@ -105,9 +127,9 @@ class MainActivity : AppCompatActivity() {
     private fun startGuide() {
         binding.includeLayoutGuide.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.VISIBLE
+        soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
 
         step1()
-        pasoActual = 1
 
     }
 
@@ -116,6 +138,7 @@ class MainActivity : AppCompatActivity() {
         val texto = bindingGuideStep.textStep1
         val nav = binding.navView
         val primerItem = nav.width / 3
+        navController?.navigate(R.id.navigation_characters)
         circulo.animate()
             .translationX(-primerItem.toFloat())
             .translationY(200.toFloat())
@@ -126,7 +149,6 @@ class MainActivity : AppCompatActivity() {
                     .alpha(1f)
             }
             .start()
-
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -147,6 +169,19 @@ class MainActivity : AppCompatActivity() {
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
+        bindingGuideStep.saltarGuia.setOnClickListener {
+            val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            fadeOutTexto.start()
+            fadeOutCirculo.start()
+            personajesVisto=true
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            resumenGuia()
+        }
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -156,18 +191,23 @@ class MainActivity : AppCompatActivity() {
             }
             fadeOutTexto.start()
             fadeOutCirculo.start()
-
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
             step2()
+            personajesVisto=true
         }
     }
 
+
+
     private fun step2() {
         val circulo = bindingGuideStep.circuloSelector
-        val texto = bindingGuideStep.textStep1
+        val texto = bindingGuideStep.textStep2
         val nav = binding.navView
-        val primerItem = nav.width / 3
+        val segundoItem = nav.width / 3
+        navController?.navigate(R.id.navigation_worlds)
+
         circulo.animate()
-            .translationXBy(primerItem.toFloat())
+            .translationXBy(segundoItem.toFloat())
             .translationY(200.toFloat())
             .withEndAction {
                 circulo.animate()
@@ -197,6 +237,19 @@ class MainActivity : AppCompatActivity() {
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
+        bindingGuideStep.saltarGuia.setOnClickListener {
+            val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            fadeOutTexto.start()
+            fadeOutCirculo.start()
+            mundosVisto=true
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            resumenGuia()
+        }
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -206,58 +259,196 @@ class MainActivity : AppCompatActivity() {
             }
             fadeOutTexto.start()
             fadeOutCirculo.start()
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
             step3()
+            mundosVisto=true
         }
     }
 
     private fun step3() {
 
-            val circulo = bindingGuideStep.circuloSelector
-            val texto = bindingGuideStep.textStep1
-            val nav = binding.navView
-            val primerItem = nav.width / 3
-            circulo.animate()
-                .translationXBy(primerItem.toFloat())
-                .translationY(200.toFloat())
-                .withEndAction {
-                    circulo.animate()
-                        .alpha(1f)
-                    texto.animate()
-                        .alpha(1f)
-                }
-                .start()
+        val circulo = bindingGuideStep.circuloSelector
+        val texto = bindingGuideStep.textStep3
+        val nav = binding.navView
+        val tercerItem = nav.width / 3
+        navController?.navigate(R.id.navigation_collectibles)
 
-            val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
-                duration = 500
-                repeatCount = 5
+        circulo.animate()
+            .translationXBy(tercerItem.toFloat())
+            .translationY(200.toFloat())
+            .withEndAction {
+                circulo.animate()
+                    .alpha(1f)
+                texto.animate()
+                    .alpha(1f)
             }
-            val scaleYCir = ObjectAnimator.ofFloat(circulo, View.SCALE_Y, 1f, 1.1f, 1f).apply {
-                duration = 500
-                repeatCount = 5
+            .start()
+
+        val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleYCir = ObjectAnimator.ofFloat(circulo, View.SCALE_Y, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        scaleXCir.start()
+        scaleYCir.start()
+        scaleXText.start()
+        scaleYText.start()
+        bindingGuideStep.saltarGuia.setOnClickListener {
+            val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
+                duration = 400
             }
-            val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
-                duration = 500
-                repeatCount = 5
+            val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
+                duration = 400
             }
-            val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
-                duration = 500
-                repeatCount = 5
+            fadeOutTexto.start()
+            fadeOutCirculo.start()
+            coleccionesVisto=true
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            resumenGuia()
+        }
+        bindingGuideStep.root.setOnClickListener {
+            val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
+                duration = 400
             }
-            scaleXCir.start()
-            scaleYCir.start()
-            scaleXText.start()
-            scaleYText.start()
-            bindingGuideStep.root.setOnClickListener {
-                val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
-                    duration = 400
-                }
-                val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
-                    duration = 400
-                }
-                fadeOutTexto.start()
-                fadeOutCirculo.start()
-                step3()
+            val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
+                duration = 400
             }
+            fadeOutTexto.start()
+            fadeOutCirculo.start()
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            step4()
+            coleccionesVisto=true
+        }
+    }
+    private fun step4() {
+
+        val circulo = bindingGuideStep.circuloSelector
+        val texto = bindingGuideStep.textStep3
+        val nav = binding.navView
+        val cuartoItem = binding.root.height-(circulo.height/2)
+        navController?.navigate(R.id.navigation_collectibles)
+
+        circulo.animate()
+            .translationXBy(150.toFloat())
+            .translationY(-cuartoItem.toFloat())
+            .withEndAction {
+                circulo.animate()
+                    .alpha(1f)
+                texto.animate()
+                    .alpha(1f)
+            }
+            .start()
+
+        val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleYCir = ObjectAnimator.ofFloat(circulo, View.SCALE_Y, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+            duration = 500
+            repeatCount = 5
+        }
+        scaleXCir.start()
+        scaleYCir.start()
+        scaleXText.start()
+        scaleYText.start()
+        bindingGuideStep.saltarGuia.alpha=0f
+        bindingGuideStep.root.setOnClickListener {
+            val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
+                duration = 400
+            }
+            fadeOutTexto.start()
+            fadeOutCirculo.start()
+            infoVisto=true
+            soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            resumenGuia()
+
+        }
+
+    }
+    private fun resumenGuia() {
+        binding.includeLayoutGuide.root.visibility=View.GONE
+        binding.includeLayoutGuideStep.root.visibility = View.GONE
+        binding.includeLayoutResumen.root.visibility = View.VISIBLE
+
+        bindingResumen.tituloResumen.alpha = 0f
+        bindingResumen.filaPersonajes.alpha = 0f
+        bindingResumen.filaMundos.alpha = 0f
+        bindingResumen.filaColecciones.alpha = 0f
+        bindingResumen.filaInfo.alpha = 0f
+        bindingResumen.button.alpha = 0f
+
+        ponerCheck(bindingResumen.checkPersonajes, personajesVisto)
+        ponerCheck(bindingResumen.checkMundos, mundosVisto)
+        ponerCheck(bindingResumen.checkColecciones, coleccionesVisto)
+        ponerCheck(bindingResumen.checkInfo, infoVisto)
+
+        var delay = 0L
+
+        animarFila(bindingResumen.tituloResumen, delay)
+        delay += 250
+
+        animarFila(bindingResumen.filaPersonajes, delay)
+        delay += 250
+
+        animarFila(bindingResumen.filaMundos, delay)
+        delay += 250
+
+        animarFila(bindingResumen.filaColecciones, delay)
+        delay += 250
+
+        animarFila(bindingResumen.filaInfo, delay)
+        delay += 250
+
+        animarFila(bindingResumen.button, delay)
+
+        bindingResumen.button.setOnClickListener {
+            binding.includeLayoutResumen.root.visibility = View.GONE
+            guiaVista = true
+        }
+    }
+    private fun ponerCheck(imagen: ImageView, visto: Boolean) {
+        if (visto) {
+            imagen.setImageResource(R.drawable.check)
+        } else {
+            imagen.setImageResource(R.drawable.not_check)
+        }
+    }
+    private fun animarFila(view: View, delay: Long) {
+        view.alpha = 0f
+        view.visibility = View.VISIBLE
+
+        ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
+            duration = 400
+            startDelay = delay
+            start()
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        soundPool.release()
+    }
+
+}

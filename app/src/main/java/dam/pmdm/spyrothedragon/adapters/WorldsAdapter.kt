@@ -12,7 +12,7 @@ import dam.pmdm.spyrothedragon.models.World
 class WorldsAdapter(
     private val list: List<World>
 ) : RecyclerView.Adapter<WorldsAdapter.WorldsViewHolder>() {
-
+    var onItemClick: ((World) -> Unit)? = null
     private val worldImages = mapOf(
         "sunny_beach" to R.drawable.sunny_beach,
         "midday_gardens" to R.drawable.midday_gardens,
@@ -37,6 +37,9 @@ class WorldsAdapter(
 
         val drawableRes = worldImages[world.image] ?: R.drawable.placeholder
         holder.imageImageView.setImageResource(drawableRes)
+        holder.itemView.setOnClickListener {
+            onItemClick?.invoke(world)
+        }
     }
 
     override fun getItemCount(): Int = list.size

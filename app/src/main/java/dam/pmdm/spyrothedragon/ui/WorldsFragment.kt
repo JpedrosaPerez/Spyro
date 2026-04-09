@@ -1,6 +1,8 @@
 package dam.pmdm.spyrothedragon.ui
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +25,8 @@ class WorldsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WorldsAdapter
     private val worldsList = mutableListOf<World>()
+    private var contClick = 0
+    private var lastWorld: World? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,7 +38,12 @@ class WorldsFragment : Fragment() {
 
         recyclerView = binding.recyclerViewWorlds
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         adapter = WorldsAdapter(worldsList)
+        adapter.onItemClick = { world ->
+            handleWorldClick(world)
+        }
+
         recyclerView.adapter = adapter
 
         loadWorlds()
@@ -84,5 +93,26 @@ class WorldsFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun handleWorldClick(world: World) {
+        if (lastWorld?.name == world.name) {
+            contClick++
+        } else {
+            contClick = 1
+            lastWorld = world
+        }
+
+        if (contClick == 3) {
+            contClick = 0
+            lastWorld = null
+            openVideo()
+        }
+    }
+
+    private fun openVideo() {
+        Log.d("EASTER_EGG", "hola")
+        val intent = Intent(context, VideoActivity::class.java)
+startActivity(intent)
     }
 }
