@@ -1,13 +1,16 @@
 package dam.pmdm.spyrothedragon
 
 import android.animation.ObjectAnimator
+import android.content.SharedPreferences
 import android.media.SoundPool
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -16,7 +19,6 @@ import dam.pmdm.spyrothedragon.databinding.ActivityMainBinding
 import dam.pmdm.spyrothedragon.databinding.GuideBinding
 import dam.pmdm.spyrothedragon.databinding.GuideStepBinding
 import dam.pmdm.spyrothedragon.databinding.ResumenGuiaBinding
-import android.widget.ImageView
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,29 +28,39 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bindingResumen: ResumenGuiaBinding
     private lateinit var soundPool: SoundPool
     private var sonidoClick: Int = 0
-
+    private lateinit var preference: SharedPreferences
     private var navController: NavController? = null
-    private var personajesVisto:Boolean=false
-    private var mundosVisto:Boolean= false
-    private var coleccionesVisto:Boolean=false
-    private var infoVisto:Boolean=false
-    private var guiaVista:Boolean=false
+
+    private var personajesVisto: Boolean = false
+    private var mundosVisto: Boolean = false
+    private var coleccionesVisto: Boolean = false
+    private var infoVisto: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        preference = getSharedPreferences("preferences", MODE_PRIVATE)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         bindingGuide = GuideBinding.bind(binding.includeLayoutGuide.root)
         bindingGuideStep = GuideStepBinding.bind(binding.includeLayoutGuideStep.root)
-        bindingResumen= ResumenGuiaBinding.bind(binding.includeLayoutResumen.root)
-        binding.includeLayoutResumen.root.visibility=View.GONE
-        binding.includeLayoutGuide.root.visibility = View.VISIBLE
+        bindingResumen = ResumenGuiaBinding.bind(binding.includeLayoutResumen.root)
+
+        binding.includeLayoutResumen.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.GONE
+
+        if (!isGuiaVista()) {
+            binding.includeLayoutGuide.root.visibility = View.VISIBLE
+        } else {
+            binding.includeLayoutGuide.root.visibility = View.GONE
+        }
 
         soundPool = SoundPool.Builder()
             .setMaxStreams(5)
             .build()
+
         sonidoClick = soundPool.load(this, R.raw.pop, 1)
 
         val navHostFragment: Fragment? =
@@ -69,22 +81,33 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_characters,
                 R.id.navigation_worlds,
                 R.id.navigation_collectibles -> {
-                    // En las pantallas de los tabs no mostramos la flecha atrás
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
                 }
 
                 else -> {
-                    // En el resto de pantallas sí
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                 }
             }
         }
+
         bindingGuide.saltarGuiaStart.setOnClickListener {
+            marcarGuiaVista()
             resumenGuia()
         }
+
         bindingGuide.buttonComenzar.setOnClickListener {
             startGuide()
         }
+    }
+
+    private fun marcarGuiaVista() {
+        preference.edit {
+            putBoolean("guiaVista", true)
+        }
+    }
+
+    private fun isGuiaVista(): Boolean {
+        return preference.getBoolean("guiaVista", false)
     }
 
     private fun selectedBottomMenu(menuItem: MenuItem): Boolean {
@@ -123,14 +146,17 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-
     private fun startGuide() {
         binding.includeLayoutGuide.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.VISIBLE
         soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
 
-        step1()
+        bindingGuide.saltarGuiaStart.setOnClickListener {
+            marcarGuiaVista()
+            resumenGuia()
+        }
 
+        step1()
     }
 
     private fun step1() {
@@ -138,17 +164,18 @@ class MainActivity : AppCompatActivity() {
         val texto = bindingGuideStep.textStep1
         val nav = binding.navView
         val primerItem = nav.width / 3
+
         navController?.navigate(R.id.navigation_characters)
+
         circulo.animate()
             .translationX(-primerItem.toFloat())
-            .translationY(200.toFloat())
+            .translationY(200f)
             .withEndAction {
-                circulo.animate()
-                    .alpha(1f)
-                texto.animate()
-                    .alpha(1f)
+                circulo.animate().alpha(1f)
+                texto.animate().alpha(1f)
             }
             .start()
+
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -161,14 +188,16 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
-        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_Y, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
         }
+
         scaleXCir.start()
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
+
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -176,12 +205,16 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
-            personajesVisto=true
+
+            personajesVisto = true
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            marcarGuiaVista()
             resumenGuia()
         }
+
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -189,31 +222,30 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
+
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            personajesVisto = true
             step2()
-            personajesVisto=true
         }
     }
-
-
 
     private fun step2() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep2
         val nav = binding.navView
         val segundoItem = nav.width / 3
+
         navController?.navigate(R.id.navigation_worlds)
 
         circulo.animate()
             .translationXBy(segundoItem.toFloat())
-            .translationY(200.toFloat())
+            .translationY(200f)
             .withEndAction {
-                circulo.animate()
-                    .alpha(1f)
-                texto.animate()
-                    .alpha(1f)
+                circulo.animate().alpha(1f)
+                texto.animate().alpha(1f)
             }
             .start()
 
@@ -229,14 +261,16 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
-        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_Y, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
         }
+
         scaleXCir.start()
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
+
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -244,12 +278,16 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
-            mundosVisto=true
+
+            mundosVisto = true
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            marcarGuiaVista()
             resumenGuia()
         }
+
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -257,30 +295,30 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
+
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            mundosVisto = true
             step3()
-            mundosVisto=true
         }
     }
 
     private fun step3() {
-
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep3
         val nav = binding.navView
         val tercerItem = nav.width / 3
+
         navController?.navigate(R.id.navigation_collectibles)
 
         circulo.animate()
             .translationXBy(tercerItem.toFloat())
-            .translationY(200.toFloat())
+            .translationY(200f)
             .withEndAction {
-                circulo.animate()
-                    .alpha(1f)
-                texto.animate()
-                    .alpha(1f)
+                circulo.animate().alpha(1f)
+                texto.animate().alpha(1f)
             }
             .start()
 
@@ -296,14 +334,16 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
-        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_Y, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
         }
+
         scaleXCir.start()
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
+
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -311,12 +351,16 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
-            coleccionesVisto=true
+
+            coleccionesVisto = true
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            marcarGuiaVista()
             resumenGuia()
         }
+
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -324,29 +368,29 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
+
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            coleccionesVisto = true
             step4()
-            coleccionesVisto=true
         }
     }
-    private fun step4() {
 
+    private fun step4() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep3
-        val nav = binding.navView
-        val cuartoItem = binding.root.height-(circulo.height/2)
+        val cuartoItem = binding.root.height - (circulo.height / 2)
+
         navController?.navigate(R.id.navigation_collectibles)
 
         circulo.animate()
-            .translationXBy(150.toFloat())
+            .translationXBy(150f)
             .translationY(-cuartoItem.toFloat())
             .withEndAction {
-                circulo.animate()
-                    .alpha(1f)
-                texto.animate()
-                    .alpha(1f)
+                circulo.animate().alpha(1f)
+                texto.animate().alpha(1f)
             }
             .start()
 
@@ -362,15 +406,18 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
-        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
+        val scaleYText = ObjectAnimator.ofFloat(texto, View.SCALE_Y, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
         }
+
         scaleXCir.start()
         scaleYCir.start()
         scaleXText.start()
         scaleYText.start()
-        bindingGuideStep.saltarGuia.alpha=0f
+
+        bindingGuideStep.saltarGuia.alpha = 0f
+
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -378,17 +425,19 @@ class MainActivity : AppCompatActivity() {
             val fadeOutTexto = ObjectAnimator.ofFloat(texto, View.ALPHA, 1f, 0f).apply {
                 duration = 400
             }
+
             fadeOutTexto.start()
             fadeOutCirculo.start()
-            infoVisto=true
+
+            infoVisto = true
             soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
+            marcarGuiaVista()
             resumenGuia()
-
         }
-
     }
+
     private fun resumenGuia() {
-        binding.includeLayoutGuide.root.visibility=View.GONE
+        binding.includeLayoutGuide.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.GONE
         binding.includeLayoutResumen.root.visibility = View.VISIBLE
 
@@ -425,9 +474,10 @@ class MainActivity : AppCompatActivity() {
 
         bindingResumen.button.setOnClickListener {
             binding.includeLayoutResumen.root.visibility = View.GONE
-            guiaVista = true
+            marcarGuiaVista()
         }
     }
+
     private fun ponerCheck(imagen: ImageView, visto: Boolean) {
         if (visto) {
             imagen.setImageResource(R.drawable.check)
@@ -435,6 +485,7 @@ class MainActivity : AppCompatActivity() {
             imagen.setImageResource(R.drawable.not_check)
         }
     }
+
     private fun animarFila(view: View, delay: Long) {
         view.alpha = 0f
         view.visibility = View.VISIBLE
@@ -450,5 +501,4 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         soundPool.release()
     }
-
 }
