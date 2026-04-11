@@ -7,4 +7,18 @@
     <string name="text_about">Aplicación desarrollada por \n <b>Jose Manuel Pedrosa Perez.</b></string>
     <string name="accept">Aceptar</string>
     <string name="title_activity_video">VideoActivity</string>
+    <string name="Welcome">Bienvenido</string>
+    <string name="guide_first">Preparate para explorar el mundo magico de esta aplicación inspirada en</string>
+    <string name="guide_second">Aqui aprenderas a navegar por pestañas llenas de dragones, mundos fascinantes y montones de tesoros brillantes</string>
+    <string name="guide_there">¿Listo para empezar?</string>
+    <string name="guide_four">Pulsa Comenzar y deja que Spyro te lleve volando a traves de esta guia interactiva.</string>
+    <string name="Begin">Comenzar</string>
+    <string name="jump_guide">Saltar Guia</string>
+    <string name="guide_step_1">Aqui podras explorar a todos los personajes del mundo de Spyro</string>
+    <string name="guide_step_2">En esta seccion aparecen los mundos de este juego.</string>
+    <string name="guide_step_3">Aqui aparecen todas las coleccines disponibles para este juego.</string>
+    <string name="guide_step_4">Informacion sobre la App</string>
+    <string name="titulo_resumen">Resumen guía</string>
+    <string name="person">Personajes</string>
+    <string name="inf">Información</string>
 </resources>

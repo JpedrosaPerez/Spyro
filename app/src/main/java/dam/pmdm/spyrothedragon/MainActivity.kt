@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         preference = getSharedPreferences("preferences", MODE_PRIVATE)
-
+        reiniciarPreferencias()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -380,7 +380,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun step4() {
         val circulo = bindingGuideStep.circuloSelector
-        val texto = bindingGuideStep.textStep3
+        val texto = bindingGuideStep.textStep4
         val cuartoItem = binding.root.height - (circulo.height / 2)
 
         navController?.navigate(R.id.navigation_collectibles)
@@ -500,5 +500,11 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         soundPool.release()
+    }
+    private fun reiniciarPreferencias() {
+        preference.edit {
+            clear()
+        }
+
     }
 }
