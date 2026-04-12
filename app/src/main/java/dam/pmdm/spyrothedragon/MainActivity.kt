@@ -22,15 +22,31 @@ import dam.pmdm.spyrothedragon.databinding.ResumenGuiaBinding
 
 class MainActivity : AppCompatActivity() {
 
+    // Binding principal de la actividad
     private lateinit var binding: ActivityMainBinding
+
+    // Binding de la pantalla inicial de la guía
     private lateinit var bindingGuide: GuideBinding
+
+    // Binding de los pasos de la guía
     private lateinit var bindingGuideStep: GuideStepBinding
+
+    // Binding del resumen final de la guía
     private lateinit var bindingResumen: ResumenGuiaBinding
+
+    // Reproductor de sonidos
     private lateinit var soundPool: SoundPool
+
+    // Id del sonido de click
     private var sonidoClick: Int = 0
+
+    // Preferencias para guardar si la guía ya fue vista
     private lateinit var preference: SharedPreferences
+
+    // Controlador de navegación
     private var navController: NavController? = null
 
+    // Variables para saber qué apartados ha visto el usuario
     private var personajesVisto: Boolean = false
     private var mundosVisto: Boolean = false
     private var coleccionesVisto: Boolean = false
@@ -39,43 +55,57 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Inicializa las preferencias
         preference = getSharedPreferences("preferences", MODE_PRIVATE)
+
+        // Reinicia las preferencias al abrir la app
         reiniciarPreferencias()
+
+        // Infla el layout principal
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Enlaza los layouts incluidos con sus bindings
         bindingGuide = GuideBinding.bind(binding.includeLayoutGuide.root)
         bindingGuideStep = GuideStepBinding.bind(binding.includeLayoutGuideStep.root)
         bindingResumen = ResumenGuiaBinding.bind(binding.includeLayoutResumen.root)
 
+        // Oculta al inicio el resumen y los pasos de la guía
         binding.includeLayoutResumen.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.GONE
 
+        // Muestra la guía solo si aún no ha sido vista
         if (!isGuiaVista()) {
             binding.includeLayoutGuide.root.visibility = View.VISIBLE
         } else {
             binding.includeLayoutGuide.root.visibility = View.GONE
         }
 
+        // Configura el reproductor de sonido
         soundPool = SoundPool.Builder()
             .setMaxStreams(5)
             .build()
 
+        // Carga el sonido de click
         sonidoClick = soundPool.load(this, R.raw.pop, 1)
 
+        // Busca el fragmento contenedor de navegación
         val navHostFragment: Fragment? =
             supportFragmentManager.findFragmentById(R.id.navHostFragment)
 
+        // Configura el navController con el menú inferior
         navHostFragment?.let {
             navController = NavHostFragment.findNavController(it)
             NavigationUI.setupWithNavController(binding.navView, navController!!)
             NavigationUI.setupActionBarWithNavController(this, navController!!)
         }
 
+        // Controla qué ocurre al pulsar cada opción del menú inferior
         binding.navView.setOnItemSelectedListener { menuItem ->
             selectedBottomMenu(menuItem)
         }
 
+        // Muestra u oculta la flecha de volver según la pantalla
         navController?.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.navigation_characters,
@@ -90,26 +120,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Si pulsa en saltar guía, la marca como vista y muestra el resumen
         bindingGuide.saltarGuiaStart.setOnClickListener {
             marcarGuiaVista()
             resumenGuia()
         }
 
+        // Si pulsa comenzar, inicia la guía paso a paso
         bindingGuide.buttonComenzar.setOnClickListener {
             startGuide()
         }
     }
 
+    // Guarda que la guía ya ha sido vista
     private fun marcarGuiaVista() {
         preference.edit {
             putBoolean("guiaVista", true)
         }
     }
 
+    // Comprueba si la guía ya fue vista antes
     private fun isGuiaVista(): Boolean {
         return preference.getBoolean("guiaVista", false)
     }
 
+    // Controla la navegación del menú inferior
     private fun selectedBottomMenu(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
             R.id.nav_characters ->
@@ -124,11 +159,13 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    // Crea el menú superior
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.about_menu, menu)
         return true
     }
 
+    // Controla las acciones del menú superior
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.action_info) {
             showInfoDialog()
@@ -138,6 +175,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Muestra el diálogo de información
     private fun showInfoDialog() {
         AlertDialog.Builder(this)
             .setTitle(R.string.title_about)
@@ -146,11 +184,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    // Inicia la guía y muestra el primer paso
     private fun startGuide() {
         binding.includeLayoutGuide.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.VISIBLE
         soundPool.play(sonidoClick, 1f, 1f, 1, 0, 1f)
 
+        // Permite saltar la guía desde esta pantalla
         bindingGuide.saltarGuiaStart.setOnClickListener {
             marcarGuiaVista()
             resumenGuia()
@@ -159,14 +199,17 @@ class MainActivity : AppCompatActivity() {
         step1()
     }
 
+    // Primer paso de la guía
     private fun step1() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep1
         val nav = binding.navView
         val primerItem = nav.width / 3
 
+        // Navega a la pantalla de personajes
         navController?.navigate(R.id.navigation_characters)
 
+        // Mueve el círculo y muestra el texto
         circulo.animate()
             .translationX(-primerItem.toFloat())
             .translationY(200f)
@@ -176,6 +219,7 @@ class MainActivity : AppCompatActivity() {
             }
             .start()
 
+        // Animación de escala del círculo
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -184,6 +228,8 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
+
+        // Animación de escala del texto
         val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -198,6 +244,7 @@ class MainActivity : AppCompatActivity() {
         scaleXText.start()
         scaleYText.start()
 
+        // Si pulsa saltar guía, termina aquí
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -215,6 +262,7 @@ class MainActivity : AppCompatActivity() {
             resumenGuia()
         }
 
+        // Si pulsa la pantalla, pasa al siguiente paso
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -232,14 +280,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Segundo paso de la guía
     private fun step2() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep2
         val nav = binding.navView
         val segundoItem = nav.width / 3
 
+        // Navega a la pantalla de mundos
         navController?.navigate(R.id.navigation_worlds)
 
+        // Mueve el círculo y muestra el texto
         circulo.animate()
             .translationXBy(segundoItem.toFloat())
             .translationY(200f)
@@ -249,6 +300,7 @@ class MainActivity : AppCompatActivity() {
             }
             .start()
 
+        // Animación de escala del círculo
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -257,6 +309,8 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
+
+        // Animación de escala del texto
         val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -271,6 +325,7 @@ class MainActivity : AppCompatActivity() {
         scaleXText.start()
         scaleYText.start()
 
+        // Si pulsa saltar guía, termina aquí
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -288,6 +343,7 @@ class MainActivity : AppCompatActivity() {
             resumenGuia()
         }
 
+        // Si pulsa la pantalla, pasa al siguiente paso
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -305,14 +361,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Tercer paso de la guía
     private fun step3() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep3
         val nav = binding.navView
         val tercerItem = nav.width / 3
 
+        // Navega a la pantalla de coleccionables
         navController?.navigate(R.id.navigation_collectibles)
 
+        // Mueve el círculo y muestra el texto
         circulo.animate()
             .translationXBy(tercerItem.toFloat())
             .translationY(200f)
@@ -322,6 +381,7 @@ class MainActivity : AppCompatActivity() {
             }
             .start()
 
+        // Animación de escala del círculo
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -330,6 +390,8 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
+
+        // Animación de escala del texto
         val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -344,6 +406,7 @@ class MainActivity : AppCompatActivity() {
         scaleXText.start()
         scaleYText.start()
 
+        // Si pulsa saltar guía, termina aquí
         bindingGuideStep.saltarGuia.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -361,6 +424,7 @@ class MainActivity : AppCompatActivity() {
             resumenGuia()
         }
 
+        // Si pulsa la pantalla, pasa al siguiente paso
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -378,13 +442,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Cuarto paso de la guía
     private fun step4() {
         val circulo = bindingGuideStep.circuloSelector
         val texto = bindingGuideStep.textStep4
         val cuartoItem = binding.root.height - (circulo.height / 2)
 
+        // Mantiene la pantalla de coleccionables
         navController?.navigate(R.id.navigation_collectibles)
 
+        // Mueve el círculo hacia la parte superior
         circulo.animate()
             .translationXBy(150f)
             .translationY(-cuartoItem.toFloat())
@@ -394,6 +461,7 @@ class MainActivity : AppCompatActivity() {
             }
             .start()
 
+        // Animación de escala del círculo
         val scaleXCir = ObjectAnimator.ofFloat(circulo, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -402,6 +470,8 @@ class MainActivity : AppCompatActivity() {
             duration = 500
             repeatCount = 5
         }
+
+        // Animación de escala del texto
         val scaleXText = ObjectAnimator.ofFloat(texto, View.SCALE_X, 1f, 1.1f, 1f).apply {
             duration = 500
             repeatCount = 5
@@ -416,8 +486,10 @@ class MainActivity : AppCompatActivity() {
         scaleXText.start()
         scaleYText.start()
 
+        // Oculta el botón de saltar en el último paso
         bindingGuideStep.saltarGuia.alpha = 0f
 
+        // Al pulsar la pantalla termina la guía y muestra el resumen
         bindingGuideStep.root.setOnClickListener {
             val fadeOutCirculo = ObjectAnimator.ofFloat(circulo, View.ALPHA, 1f, 0f).apply {
                 duration = 400
@@ -436,11 +508,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Muestra el resumen final de la guía
     private fun resumenGuia() {
         binding.includeLayoutGuide.root.visibility = View.GONE
         binding.includeLayoutGuideStep.root.visibility = View.GONE
         binding.includeLayoutResumen.root.visibility = View.VISIBLE
 
+        // Oculta los elementos antes de animarlos
         bindingResumen.tituloResumen.alpha = 0f
         bindingResumen.filaPersonajes.alpha = 0f
         bindingResumen.filaMundos.alpha = 0f
@@ -448,6 +522,7 @@ class MainActivity : AppCompatActivity() {
         bindingResumen.filaInfo.alpha = 0f
         bindingResumen.button.alpha = 0f
 
+        // Coloca el icono correcto según lo visto
         ponerCheck(bindingResumen.checkPersonajes, personajesVisto)
         ponerCheck(bindingResumen.checkMundos, mundosVisto)
         ponerCheck(bindingResumen.checkColecciones, coleccionesVisto)
@@ -455,6 +530,7 @@ class MainActivity : AppCompatActivity() {
 
         var delay = 0L
 
+        // Anima cada fila con un pequeño retraso
         animarFila(bindingResumen.tituloResumen, delay)
         delay += 250
 
@@ -472,12 +548,14 @@ class MainActivity : AppCompatActivity() {
 
         animarFila(bindingResumen.button, delay)
 
+        // Al pulsar el botón oculta el resumen
         bindingResumen.button.setOnClickListener {
             binding.includeLayoutResumen.root.visibility = View.GONE
             marcarGuiaVista()
         }
     }
 
+    // Cambia la imagen del check según si el apartado fue visto o no
     private fun ponerCheck(imagen: ImageView, visto: Boolean) {
         if (visto) {
             imagen.setImageResource(R.drawable.check)
@@ -486,6 +564,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Hace una animación de aparición con alpha
     private fun animarFila(view: View, delay: Long) {
         view.alpha = 0f
         view.visibility = View.VISIBLE
@@ -497,14 +576,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Libera el SoundPool al destruir la actividad
     override fun onDestroy() {
         super.onDestroy()
         soundPool.release()
     }
+
+    // Borra todas las preferencias guardadas
     private fun reiniciarPreferencias() {
         preference.edit {
             clear()
         }
-
     }
 }
